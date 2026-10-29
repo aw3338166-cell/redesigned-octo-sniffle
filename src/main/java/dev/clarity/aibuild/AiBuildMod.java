@@ -270,16 +270,4 @@ public class AiBuildMod implements ModInitializer {
         return server.getServerDirectory().resolve("ai-blueprints").toAbsolutePath().normalize();
     }
 
-    private static Blueprint demoBlueprint() {
-        Blueprint b = new Blueprint();
-        b.name = "Small oak starter house";
-        for (int x = 0; x < 7; x++) for (int z = 0; z < 7; z++) {
-            b.blocks.add(new PlannedBlock(x, 0, z, "minecraft:oak_planks"));
-            if (x == 0 || x == 6 || z == 0 || z == 6) {
-                for (int y = 1; y <= 3; y++) {
-                    if (y == 2 && ((x == 0 || x == 6) && z == 3)) continue;
-                    if (y == 2 && ((z == 0 || z == 6) && x == 3)) continue;
-                    b.blocks.add(new PlannedBlock(x, y, z, "minecraft:oak_planks"));
-                }
-            }
-        }
+    private static Blueprint demoBlueprint()
