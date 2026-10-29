@@ -71,13 +71,13 @@ public class AiBuildMod implements ModInitializer {
     public void onInitialize() {
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
             dispatcher.register(literal("aibuild")
-                .then(literal("demo").requires(s -> s.hasPermissions(2)).executes(ctx -> {
+                .then(literal("demo").requires(s -> s.hasPermission(2)).executes(ctx -> {
                     currentBlueprint = demoBlueprint();
                     ctx.getSource().sendSuccess(() -> Component.literal(
                             "Loaded demo blueprint (" + currentBlueprint.blocks.size() + " blocks). Stand where its origin should be, then run /aibuild start."), false);
                     return 1;
                 }))
-                .then(literal("load").requires(s -> s.hasPermissions(2))
+                .then(literal("load").requires(s -> s.hasPermission(2))
                     .then(argument("file", StringArgumentType.word()).executes(ctx -> {
                         String file = StringArgumentType.getString(ctx, "file");
                         try {
@@ -95,7 +95,7 @@ public class AiBuildMod implements ModInitializer {
                             return 0;
                         }
                     })))
-                .then(literal("save-demo").requires(s -> s.hasPermissions(2)).executes(ctx -> {
+                .then(literal("save-demo").requires(s -> s.hasPermission(2)).executes(ctx -> {
                     try {
                         Path dir = blueprintDir(ctx.getSource().getServer());
                         Files.createDirectories(dir);
@@ -107,7 +107,7 @@ public class AiBuildMod implements ModInitializer {
                         return 0;
                     }
                 }))
-                .then(literal("prompt").requires(s -> s.hasPermissions(2))
+                .then(literal("prompt").requires(s -> s.hasPermission(2))
                     .then(argument("description", StringArgumentType.greedyString()).executes(ctx -> {
                         String prompt = StringArgumentType.getString(ctx, "description");
                         String key = System.getenv("OPENAI_API_KEY");
@@ -137,30 +137,30 @@ public class AiBuildMod implements ModInitializer {
                         });
                         return 1;
                     })))
-                .then(literal("start").requires(s -> s.hasPermissions(2))
+                .then(literal("start").requires(s -> s.hasPermission(2))
                     .then(argument("blocksPerTick", IntegerArgumentType.integer(1, 5)).executes(ctx ->
                         startBuild(ctx.getSource().getPlayerOrException(), ctx.getSource().getServer(),
                                 IntegerArgumentType.getInteger(ctx, "blocksPerTick"), ctx.getSource())))
                     .executes(ctx -> startBuild(ctx.getSource().getPlayerOrException(),
                             ctx.getSource().getServer(), 1, ctx.getSource())))
-                .then(literal("pause").requires(s -> s.hasPermissions(2)).executes(ctx -> {
+                .then(literal("pause").requires(s -> s.hasPermission(2)).executes(ctx -> {
                     if (currentJob == null) { ctx.getSource().sendFailure(Component.literal("No build job.")); return 0; }
                     currentJob.running = false;
                     ctx.getSource().sendSuccess(() -> Component.literal("Build paused at block " + currentJob.cursor + "."), false);
                     return 1;
                 }))
-                .then(literal("resume").requires(s -> s.hasPermissions(2)).executes(ctx -> {
+                .then(literal("resume").requires(s -> s.hasPermission(2)).executes(ctx -> {
                     if (currentJob == null) { ctx.getSource().sendFailure(Component.literal("No build job.")); return 0; }
                     currentJob.running = true;
                     ctx.getSource().sendSuccess(() -> Component.literal("Build resumed."), false);
                     return 1;
                 }))
-                .then(literal("stop").requires(s -> s.hasPermissions(2)).executes(ctx -> {
+                .then(literal("stop").requires(s -> s.hasPermission(2)).executes(ctx -> {
                     currentJob = null;
                     ctx.getSource().sendSuccess(() -> Component.literal("Build stopped. Existing blocks were left in place."), false);
                     return 1;
                 }))
-                .then(literal("status").requires(s -> s.hasPermissions(2)).executes(ctx -> {
+                .then(literal("status").requires(s -> s.hasPermission(2)).executes(ctx -> {
                     BuildJob j = currentJob;
                     if (j == null) {
                         ctx.getSource().sendSuccess(() -> Component.literal("No active build. Blueprint: " +
@@ -179,7 +179,7 @@ public class AiBuildMod implements ModInitializer {
 
     private static int startBuild(ServerPlayer player, MinecraftServer server, int blocksPerTick,
                                 net.minecraft.commands.CommandSourceStack source) {
-        if (!source.hasPermissions(2)) {
+        if (!source.hasPermission(2)) {
             source.sendFailure(Component.literal("Operator permission required."));
             return 0;
         }
@@ -191,7 +191,7 @@ public class AiBuildMod implements ModInitializer {
             source.sendFailure(Component.literal("A build job already exists. Use /aibuild stop first."));
             return 0;
         }
-        currentJob = new BuildJob(player, player.level(), player.blockPosition().above(), new ArrayList<>(currentBlueprint.blocks));
+        currentJob = new BuildJob(player, player.serverLevel(), player.blockPosition().above(), new ArrayList<>(currentBlueprint.blocks));
         currentJob.blocksPerTick = Math.max(1, Math.min(5, blocksPerTick));
         currentJob.running = true;
         source.sendSuccess(() -> Component.literal("Build started at your feet + 1, " +
@@ -202,7 +202,7 @@ public class AiBuildMod implements ModInitializer {
     private static void tickBuild(MinecraftServer server) {
         BuildJob job = currentJob;
         if (job == null || !job.running) return;
-        if (!job.owner.isAlive() || job.owner.level() != job.level) {
+        if (!job.owner.isAlive() || job.owner.serverLevel() != job.level) {
             job.running = false;
             job.owner.sendSystemMessage(Component.literal("Build paused because you died or changed dimensions."));
             return;
