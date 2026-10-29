@@ -1,35 +1,36 @@
-plugins {
-    id 'fabric-loom' version '1.14.10'
-    id 'maven-publish'
-}
+name: Build Mod
 
-version = project.mod_version
-group = project.maven_group
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
 
-repositories {
-    // Add custom repositories if needed
-}
+jobs:
+  build:
+    runs-on: ubuntu-latest
 
-dependencies {
-    minecraft "com.mojang:minecraft:${project.minecraft_version}"
-    mappings loom.officialMojangMappings()
-    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
-    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
-}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-processResources {
-    inputs.property "version", project.version
-    filesMatching("fabric.mod.json") {
-        expand "version": project.version
-    }
-}
+      - name: Set up JDK 21
+        uses: actions/setup-java@v5
+        with:
+          java-version: '21'
+          distribution: 'temurin'
 
-tasks.withType(JavaCompile).configureEach {
-    it.options.release = 21
-}
+      - name: Download and Setup Gradle
+        run: |
+          wget https://services.gradle.org/distributions/gradle-9.2.1-bin.zip
+          unzip -q gradle-9.2.1-bin.zip
+          echo "$PWD/gradle-9.2.1/bin" >> $GITHUB_PATH
 
-java {
-    sourceCompatibility = JavaVersion.VERSION_21
-    targetCompatibility = JavaVersion.VERSION_21
-    withSourcesJar()
-}
+      - name: Build with Gradle
+        run: gradle build
+
+      - name: Upload Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: fabric-mod
+          path: build/libs/*.jar
