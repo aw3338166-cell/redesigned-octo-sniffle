@@ -71,13 +71,13 @@ public class AiBuildMod implements ModInitializer {
     public void onInitialize() {
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
             dispatcher.register(literal("aibuild")
-                .then(literal("demo").requires(s -> s.hasPermission(2)).executes(ctx -> {
+                .then(literal("demo").requires(s -> s.hasPermissions(2)).executes(ctx -> {
                     currentBlueprint = demoBlueprint();
                     ctx.getSource().sendSuccess(() -> Component.literal(
                             "Loaded demo blueprint (" + currentBlueprint.blocks.size() + " blocks). Stand where its origin should be, then run /aibuild start."), false);
                     return 1;
                 }))
-                .then(literal("load").requires(s -> s.hasPermission(2))
+                .then(literal("load").requires(s -> s.hasPermissions(2))
                     .then(argument("file", StringArgumentType.word()).executes(ctx -> {
                         String file = StringArgumentType.getString(ctx, "file");
                         try {
@@ -95,7 +95,7 @@ public class AiBuildMod implements ModInitializer {
                             return 0;
                         }
                     })))
-                .then(literal("save-demo").requires(s -> s.hasPermission(2)).executes(ctx -> {
+                .then(literal("save-demo").requires(s -> s.hasPermissions(2)).executes(ctx -> {
                     try {
                         Path dir = blueprintDir(ctx.getSource().getServer());
                         Files.createDirectories(dir);
@@ -107,7 +107,7 @@ public class AiBuildMod implements ModInitializer {
                         return 0;
                     }
                 }))
-                .then(literal("prompt").requires(s -> s.hasPermission(2))
+                .then(literal("prompt").requires(s -> s.hasPermissions(2))
                     .then(argument("description", StringArgumentType.greedyString()).executes(ctx -> {
                         String prompt = StringArgumentType.getString(ctx, "description");
                         String key = System.getenv("OPENAI_API_KEY");
@@ -137,30 +137,30 @@ public class AiBuildMod implements ModInitializer {
                         });
                         return 1;
                     })))
-                .then(literal("start").requires(s -> s.hasPermission(2))
+                .then(literal("start").requires(s -> s.hasPermissions(2))
                     .then(argument("blocksPerTick", IntegerArgumentType.integer(1, 5)).executes(ctx ->
                         startBuild(ctx.getSource().getPlayerOrException(), ctx.getSource().getServer(),
                                 IntegerArgumentType.getInteger(ctx, "blocksPerTick"), ctx.getSource())))
                     .executes(ctx -> startBuild(ctx.getSource().getPlayerOrException(),
                             ctx.getSource().getServer(), 1, ctx.getSource())))
-                .then(literal("pause").requires(s -> s.hasPermission(2)).executes(ctx -> {
+                .then(literal("pause").requires(s -> s.hasPermissions(2)).executes(ctx -> {
                     if (currentJob == null) { ctx.getSource().sendFailure(Component.literal("No build job.")); return 0; }
                     currentJob.running = false;
                     ctx.getSource().sendSuccess(() -> Component.literal("Build paused at block " + currentJob.cursor + "."), false);
                     return 1;
                 }))
-                .then(literal("resume").requires(s -> s.hasPermission(2)).executes(ctx -> {
+                .then(literal("resume").requires(s -> s.hasPermissions(2)).executes(ctx -> {
                     if (currentJob == null) { ctx.getSource().sendFailure(Component.literal("No build job.")); return 0; }
                     currentJob.running = true;
                     ctx.getSource().sendSuccess(() -> Component.literal("Build resumed."), false);
                     return 1;
                 }))
-                .then(literal("stop").requires(s -> s.hasPermission(2)).executes(ctx -> {
+                .then(literal("stop").requires(s -> s.hasPermissions(2)).executes(ctx -> {
                     currentJob = null;
                     ctx.getSource().sendSuccess(() -> Component.literal("Build stopped. Existing blocks were left in place."), false);
                     return 1;
                 }))
-                .then(literal("status").requires(s -> s.hasPermission(2)).executes(ctx -> {
+                .then(literal("status").requires(s -> s.hasPermissions(2)).executes(ctx -> {
                     BuildJob j = currentJob;
                     if (j == null) {
                         ctx.getSource().sendSuccess(() -> Component.literal("No active build. Blueprint: " +
@@ -179,7 +179,7 @@ public class AiBuildMod implements ModInitializer {
 
     private static int startBuild(ServerPlayer player, MinecraftServer server, int blocksPerTick,
                                 net.minecraft.commands.CommandSourceStack source) {
-        if (!source.hasPermission(2)) {
+        if (!source.hasPermissions(2)) {
             source.sendFailure(Component.literal("Operator permission required."));
             return 0;
         }
@@ -267,7 +267,7 @@ public class AiBuildMod implements ModInitializer {
     }
 
     private static Path blueprintDir(MinecraftServer server) {
-        return server.getServerDirectory().toPath().resolve("ai-blueprints").toAbsolutePath().normalize();
+        return server.getServerDirectory().resolve("ai-blueprints").toAbsolutePath().normalize();
     }
 
     private static Blueprint demoBlueprint() {
@@ -283,11 +283,3 @@ public class AiBuildMod implements ModInitializer {
                 }
             }
         }
-        for (int x = 0; x < 7; x++) for (int z = 0; z < 7; z++)
-            if (x == 0 || x == 6 || z == 0 || z == 6)
-                b.blocks.add(new PlannedBlock(x, 4, z, "minecraft:oak_stairs"));
-        b.blocks.add(new PlannedBlock(3, 1, 0, "minecraft:air"));
-        b.blocks.add(new PlannedBlock(3, 2, 0, "minecraft:air"));
-        return b;
-    }
-}
