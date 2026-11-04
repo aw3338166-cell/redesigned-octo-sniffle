@@ -3,7 +3,7 @@
   "id": "minecraft_ai_build",
   "version": "${version}",
   "name": "Minecraft AI Build",
-  "description": "An AI-driven building mod for Fabric 1.21.1",
+  "description": "A permission-gated AI building mod for Fabric 1.21.11",
   "authors": ["Clarity"],
   "contact": {},
   "license": "MIT",
@@ -15,8 +15,8 @@
   },
   "mixins": [],
   "depends": {
-    "fabricloader": ">=0.16.0",
-    "minecraft": "1.21.1",
+    "fabricloader": ">=0.18.1",
+    "minecraft": "1.21.11",
     "java": ">=21",
     "fabric-api": "*"
   }
