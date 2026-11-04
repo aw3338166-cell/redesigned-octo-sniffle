@@ -213,7 +213,8 @@ public class AiBuildMod implements ModInitializer {
                 currentJob = null;
                 return;
             }
-            Block block = BuiltInRegistries.BLOCK.get(Identifier.parse(p.block));
+            Block block = BuiltInRegistries.BLOCK.get(Identifier.parse(p.block))
+                    .map(holder -> holder.value()).orElse(null);
             if (block == null || block == net.minecraft.world.level.block.Blocks.AIR) continue;
             BlockState state = block.defaultBlockState();
             job.level.setBlock(pos, state, 3);
